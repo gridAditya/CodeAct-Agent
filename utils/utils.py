@@ -1,9 +1,10 @@
 import os
 import uuid
+from pathlib import Path
+from colorama import Fore, Style
+
 from config import logging_config
 import logging
-
-from colorama import Fore, Style
 
 def read_file_content(file_path: str)->str:
     """
@@ -29,7 +30,6 @@ def generate_unique_id():
     """
     return str(uuid.uuid4())
 
-
 def ensure_directory(path: str) -> bool:
     """
     Ensure that the given directory exists.
@@ -45,10 +45,19 @@ def ensure_directory(path: str) -> bool:
     try:
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)  # safely creates nested dirs too
-            print(f"{Fore.GREEN}{Style.BRIGHT}[+] Directory created: {Fore.BLACK}{path}{Style.RESET_ALL}")
-        else:
-            print(f"{Fore.GREEN}{Style.BRIGHT}[+] Directory already exists: {Fore.BLACK}{path}{Style.RESET_ALL}")
         return True
     except OSError as e:
-        print(f"{Fore.GREEN}{Style.BRIGHT}[-] Error creating directory '{path}': {Fore.BLACK}{e}{Style.RESET_ALL}")
         return False
+
+def to_absolute_path(rel_path: str) -> str:
+    """
+    Convert a (possibly relative) path to an absolute path.
+    Expands user (~) and resolves "."/"..".
+    Raises FileNotFoundError if the path (after expansion) does not exist.
+    """
+    p = Path(rel_path).expanduser()
+    try:
+        # strict=True -> raise FileNotFoundError if path doesn't exist
+        return str(p.resolve(strict=True))
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Path does not exist: {rel_path!r}")

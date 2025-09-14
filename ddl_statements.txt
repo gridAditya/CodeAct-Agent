@@ -1,0 +1,46 @@
+------------------------------------------------ TABLE CREATION STATEMENTS ----------------------------------------------
+
+CREATE TABLE users (
+	user_id TEXT PRIMARY KEY,
+	username TEXT,
+	email TEXT UNIQUE,
+	password TEXT,
+	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE conversations (
+    conversation_id TEXT PRIMARY KEY,
+    conversation_title TEXT DEFAULT NULL,
+    conversation_history JSONB NOT NULL,
+        CHECK(jsonb_typeof(conversation_history)='array'),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+)
+
+
+CREATE TABLE user_conversation (
+    user_id TEXT REFERENCES users(user_id),
+    conversation_id TEXT REFERENCES conversations(conversation_id)
+);
+
+
+------------------------------------------------- FUNCTIONS & TRIGGERS ------------------------------------------------
+
+CREATE OR REPLACE FUNCTION update_updated_at_column ()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_conversations_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_conversations_updated_at
+    BEFORE UPDATE ON conversations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();

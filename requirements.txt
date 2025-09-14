@@ -1,4 +1,7 @@
+asyncpg
+bcrypt
 colorama
+fastapi
 litellm
 matplotlib
 numpy
@@ -6,3 +9,4 @@ pandas
 pydantic
 python-dotenv
 scikit-learn
+uvicorn
